@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENDA PRESTIGE 2100 - ESTRUCTURA ORIGINAL</title>
+    <style>
+        :root { --fondo: #0a0a0a; --panel: #1a1a1a; --oro: #d4af37; --texto: #e0e0e0; --borde: #444; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--fondo); color: var(--texto); margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; }
+        
+        header { text-align: center; border-bottom: 2px solid var(--oro); padding-bottom: 5px; margin-bottom: 10px; }
+        h1 { margin: 0; font-size: 1.4em; color: var(--oro); text-transform: uppercase; letter-spacing: 3px; }
+
+        .card { background: var(--panel); padding: 15px; border: 1px solid var(--borde); border-radius: 4px; margin-bottom: 10px; }
+        .grid-f { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; align-items: end; }
+        label { display: block; font-size: 0.7em; color: var(--oro); margin-bottom: 4px; text-transform: uppercase; }
+        select, input { background: #000; color: #fff; border: 1px solid var(--oro); padding: 8px; border-radius: 2px; font-size: 0.9em; width: 100%; outline: none; }
+        
+        .btn-add { background: var(--oro); color: #000; border: none; font-weight: bold; cursor: pointer; padding: 10px; text-transform: uppercase; }
+        .nav { display: flex; gap: 10px; justify-content: center; align-items: center; background: #111; padding: 10px; border: 1px solid var(--borde); margin-bottom: 10px; }
+        .btn-nav { background: #222; color: var(--oro); border: 1px solid var(--oro); padding: 8px 15px; cursor: pointer; font-size: 0.8em; font-weight: bold; }
+
+        #visor { flex-grow: 1; overflow-y: auto; background: #050505; border: 1px solid var(--borde); padding: 10px; }
+        .grid-ano { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .mes-contenedor { background: #111; border: 1px solid #333; padding: 10px; }
+        .mes-titulo { color: var(--oro); text-align: center; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid var(--oro); padding-bottom: 5px; }
+        
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .c-h { color: var(--oro); text-align: center; font-size: 0.7em; font-weight: bold; padding: 5px; background: #000; }
+        .c-d { background: var(--panel); border: 1px solid #222; min-height: 85px; padding: 5px; cursor: pointer; position: relative; }
+        
+        /* MARCADOR DE HOY - SIN CAMBIAR ESTRUCTURA */
+        .hoy { border: 2px solid #fff !important; background: #1c1800 !important; }
+        .d-n { font-weight: bold; color: var(--oro); font-size: 0.9em; border-bottom: 1px solid #222; display: block; margin-bottom: 4px; }
+
+        .nt { font-size: 0.65em; border-left: 3px solid var(--oro); padding: 2px 4px; margin-top: 3px; display: block; color: #fff; background: rgba(255,255,255,0.05); overflow: hidden; text-overflow: ellipsis; }
+        .del { float: right; color: #ff4d4d; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 1.2em; line-height: 0.7; }
+
+        /* Estilo para el Resumen (Se activa con una clase) */
+        body.snap header, body.snap .card, body.snap .nav, body.snap .del { display: none !important; }
+        .btn-exit { display: none; background: var(--oro); color: #000; width: 100%; padding: 15px; border: none; font-weight: bold; position: sticky; top: 0; z-index: 1000; }
+        body.snap .btn-exit { display: block; }
+    </style>
+</head>
+<body id="cuerpo">
+
+<button class="btn-exit" onclick="salirSnap()">⬅️ VOLVER AL MODO EDICIÓN</button>
+<header><h1>AGENDA PRESTIGE 2100</h1></header>
+
+<div class="card">
+    <div class="grid-f">
+        <div><label>Día</label><select id="f-d"></select></div>
+        <div><label>Mes</label><select id="f-m">
+            <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+            <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
+            <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+            <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
+        </select></div>
+        <div><label>Año</label><select id="f-a"></select></div>
+        <div style="grid-column: span 2;"><label>Descripción</label><input type="text" id="f-n" placeholder="Escriba la nota..."></div>
+        <div><label>Aviso</label><select id="f-t">
+            <option value="C">CUMPLE (Todos los años)</option>
+            <option value="S">SEGURO (40 días)</option>
+            <option value="M">MÉDICO (1 día)</option>
+            <option value="O">OTROS (10 días)</option>
+        </select></div>
+        <button class="btn-add" onclick="save()">💾 GUARDAR</button>
+    </div>
+</div>
+
+<div class="nav">
+    <strong>VER:</strong>
+    <select id="v-m" style="width:140px"><option value="todo">TODO EL AÑO</option></select>
+    <select id="v-a" style="width:100px"></select>
+    <button class="btn-nav" onclick="buscar()">🔍 MOSTRAR</button>
+    <button class="btn-nav" style="background:#d4af37; color:black;" onclick="verResumenAnual()">👁️ VISTA HOJA</button>
+    <button class="btn-nav" style="background:#25D366; color:white; border:none;" onclick="ws()">📱 WHATSAPP</button>
+</div>
+
+<div id="visor"></div>
+
+<script>
+    const MASTER_KEY = 'AGENDA_STABLE_STORAGE_2026';
+    const hoy = new Date();
+    let db = JSON.parse(localStorage.getItem(MASTER_KEY)) || [];
+
+    const mesesNom = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    const fd = document.getElementById('f-d'), fm = document.getElementById('f-m'), fa = document.getElementById('f-a');
+    const vm = document.getElementById('v-m'), va = document.getElementById('v-a');
+
+    // Carga de selectores
+    for(let i=1; i<=31; i++) fd.innerHTML += `<option value="${i}">${i}</option>`;
+    for(let i=2024; i<=2100; i++) {
+        fa.innerHTML += `<option value="${i}">${i}</option>`;
+        va.innerHTML += `<option value="${i}">${i}</option>`;
+    }
+    mesesNom.forEach((m, i) => vm.innerHTML += `<option value="${i}">${m}</option>`);
+
+    // Valores iniciales según RELOJ REAL
+    fd.value = hoy.getDate();
+    fm.value = hoy.getMonth();
+    fa.value = hoy.getFullYear();
+    vm.value = hoy.getMonth();
+    va.value = hoy.getFullYear();
+
+    function buscar() {
+        const m = vm.value;
+        const a = parseInt(va.value);
+        const visor = document.getElementById('visor');
+        visor.innerHTML = "";
+        if (m === "todo") {
+            const grid = document.createElement('div'); grid.className = 'grid-ano';
+            for (let i = 0; i < 12; i++) { grid.appendChild(crearMesHTML(i, a)); }
+            visor.appendChild(grid);
+        } else {
+            visor.appendChild(crearMesHTML(parseInt(m), a));
+        }
+    }
+
+    function crearMesHTML(mes, ano) {
+        const cont = document.createElement('div'); cont.className = 'mes-contenedor';
+        cont.innerHTML = `<div class="mes-titulo">${mesesNom[mes]} ${ano}</div>`;
+        const grid = document.createElement('div'); grid.className = 'cal-grid';
+        ["L","M","X","J","V","S","D"].forEach(d => grid.innerHTML += `<div class="c-h">${d}</div>`);
+        
+        let p = new Date(ano, mes, 1).getDay();
+        let huecos = (p === 0) ? 6 : p - 1;
+        let dias = new Date(ano, mes + 1, 0).getDate();
+
+        for(let i=0; i<huecos; i++) grid.innerHTML += `<div class="c-d" style="background:#000; border:none;"></div>`;
+        for(let d=1; d<=dias; d++) {
+            let esHoy = (d === hoy.getDate() && mes === hoy.getMonth() && ano === hoy.getFullYear()) ? "hoy" : "";
+            let notas = db.filter(x => (x.d==d && x.m==mes && (x.a==ano || x.t=='C')));
+            let nHtml = notas.map(x => `<span class="nt"><button class="del" onclick="del(event, ${x.id})">×</button>${x.n}</span>`).join('');
+            grid.innerHTML += `<div class="c-d ${esHoy}" onclick="leer(${d},${mes},${ano})"><span class="d-n">${d}</span>${nHtml}</div>`;
+        }
+        cont.appendChild(grid); return cont;
+    }
+
+    function save() {
+        const n = document.getElementById('f-n').value;
+        if(!n) return alert("Escribe la descripción");
+        const etiq = { 'C': 'CUMPLE', 'S': 'SEGURO', 'M': 'MÉDICO', 'O': 'OTROS' };
+        db.push({ id: Date.now(), d: parseInt(fd.value), m: parseInt(fm.value), a: parseInt(fa.value), n: `[${etiq[document.getElementById('f-t').value]}] ${n}`, t: document.getElementById('f-t').value });
+        localStorage.setItem(MASTER_KEY, JSON.stringify(db));
+        document.getElementById('f-n').value = "";
+        buscar();
+    }
+
+    function del(e, id) {
+        e.stopPropagation();
+        if(confirm("¿Borrar?")) { db = db.filter(x => x.id !== id); localStorage.setItem(MASTER_KEY, JSON.stringify(db)); buscar(); }
+    }
+
+    function leer(d, m, a) {
+        let notas = db.filter(x => (x.d==d && x.m==m && (x.a==a || x.t=='C')));
+        if(notas.length > 0) alert(`DÍA ${d} DE ${mesesNom[m].toUpperCase()}:\n\n` + notas.map(x => x.n).join('\n'));
+    }
+
+    function verResumenAnual() {
+        const aSel = parseInt(va.value);
+        const visor = document.getElementById('visor');
+        document.body.classList.add('snap');
+        let html = `<div style="padding:20px;"><h2>RESUMEN COMPLETO ${aSel}</h2>`;
+        for(let m=0; m<12; m++) {
+            let nMes = db.filter(x => x.m == m && (x.a == aSel || x.t == 'C')).sort((a,b) => a.d - b.d);
+            if(nMes.length > 0) {
+                html += `<div style="border-left:3px solid var(--oro); padding-left:15px; margin-bottom:20px;"><h3>${mesesNom[m]}</h3>`;
+                nMes.forEach(x => html += `<div style="margin-bottom:5px;"><b>Día ${x.d}:</b> ${x.n}</div>`);
+                html += `</div>`;
+            }
+        }
+        visor.innerHTML = html + "</div>";
+        visor.scrollTop = 0;
+    }
+
+    function salirSnap() { document.body.classList.remove('snap'); buscar(); }
+
+    function ws() {
+        let txt = "MIS NOTAS:\n";
+        db.filter(x => x.m == vm.value && (x.a == va.value || x.t == 'C')).forEach(x => txt += `• ${x.d}/${x.m+1}: ${x.n}\n`);
+        window.location.href = `whatsapp://send?text=${encodeURIComponent(txt)}`;
+    }
+
+    window.onload = buscar;
+</script>
+</body>
+</html>
